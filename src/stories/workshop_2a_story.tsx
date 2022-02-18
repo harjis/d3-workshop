@@ -1,38 +1,34 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { storiesOf } from "@storybook/react";
-storiesOf('Development/d3-workshop/2a', module).addDecorator(getStory => {
-  const style = {
-    background: 'lightgrey',
-    height: window.innerHeight,
-    width: window.innerWidth,
-    overflow: 'scroll'
-  };
-  return <div style={style}>{getStory()}</div>;
-}).add('Linear scale', () => {
-  return <LinearScale width={200} height={100} points={[0, 5, 10]} />;
-});
+import { extent, select, scaleLinear } from "d3";
+
+storiesOf("Development/d3-workshop/Solutions/2a", module)
+  .addDecorator((getStory) => {
+    const style = {
+      background: "lightgrey",
+      height: window.innerHeight,
+      width: window.innerWidth,
+      overflow: "scroll",
+    };
+    return <div style={style}>{getStory()}</div>;
+  })
+  .add("Linear scale", () => {
+    return <LinearScale width={200} height={100} points={[0, 5, 10]} />;
+  });
 type Props = {
   height: number;
   points: number[];
   width: number;
 };
 
-class LinearScale extends React.Component<Props> {
-  componentDidMount() {
-    draw(this.ref, this.props);
-  }
+function draw(element: SVGSVGElement | null, props: Props) {}
 
-  componentDidUpdate(nextProps: Props) {
-    draw(this.ref, nextProps);
-  }
+const LinearScale = (props: Props): JSX.Element => {
+  const ref = useRef<SVGSVGElement>(null);
 
-  applyRef = ref => this.ref = ref;
-  ref: Element | null | undefined;
+  useEffect(() => {
+    draw(ref.current, props);
+  }, [props]);
 
-  render() {
-    return <svg height={this.props.height} width={this.props.width} ref={this.applyRef} />;
-  }
-
-}
-
-function draw(element: Element | null | undefined, props: Props) {}
+  return <svg height={props.height} width={props.width} ref={ref} />;
+};
