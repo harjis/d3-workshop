@@ -1,40 +1,35 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { storiesOf } from "@storybook/react";
-// If you want same blues as in solution
-import { schemeBlues } from "d3";
-storiesOf('Development/d3-workshop/2d', module).addDecorator(getStory => {
-  const style = {
-    background: 'lightgrey',
-    height: window.innerHeight,
-    width: window.innerWidth,
-    overflow: 'scroll'
-  };
-  return <div style={style}>{getStory()}</div>;
-}).add('Band scale with bars', () => {
-  return <BarChart width={500} height={400} bars={[]} />;
-});
+import { select, scaleBand, scaleLinear, scaleQuantize, schemeBlues } from "d3";
+
+storiesOf("Development/d3-workshop/2d", module)
+  .addDecorator((getStory) => {
+    const style = {
+      background: "lightgrey",
+      height: window.innerHeight,
+      width: window.innerWidth,
+      overflow: "scroll",
+    };
+    return <div style={style}>{getStory()}</div>;
+  })
+  .add("Band scale with bars", () => {
+    return <BarChart width={500} height={400} bars={[]} />;
+  });
+
 type Props = {
   height: number;
-  bars: any;
+  bars: unknown;
   width: number;
 };
 
-class BarChart extends React.Component<Props> {
-  componentDidMount() {
-    drawBars(this.ref, this.props);
-  }
+function drawBars(element: SVGSVGElement | null, props: Props): void {}
 
-  componentDidUpdate(nextProps: Props) {
-    drawBars(this.ref, this.props);
-  }
+const BarChart = (props: Props): JSX.Element => {
+  const ref = useRef<SVGSVGElement>(null);
 
-  applyRef = ref => this.ref = ref;
-  ref: Element | null | undefined;
+  useEffect(() => {
+    drawBars(ref.current, props);
+  }, [props]);
 
-  render() {
-    return <svg height={this.props.height} width={this.props.width} ref={this.applyRef} />;
-  }
-
-}
-
-function drawBars(element: Element | null | undefined, props: Props) {}
+  return <svg height={props.height} width={props.width} ref={ref} />;
+};
