@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from "react";
 import { storiesOf } from "@storybook/react";
 import { extent, select, scaleLinear } from "d3";
 
-storiesOf("Development/d3-workshop/Solutions/2a", module)
+storiesOf("Development/d3-workshop/2a", module)
   .addDecorator((getStory) => {
     const style = {
       background: "lightgrey",

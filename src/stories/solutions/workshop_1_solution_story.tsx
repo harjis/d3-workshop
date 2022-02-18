@@ -19,6 +19,7 @@ storiesOf("Development/d3-workshop/Solutions/1", module)
 type AlphabetType = string;
 
 function draw(element: SVGSVGElement | null, alphabet: AlphabetType[]): void {
+  console.log("draw");
   if (!element) {
     return;
   }

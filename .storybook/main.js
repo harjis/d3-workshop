@@ -7,4 +7,7 @@ module.exports = {
     "@storybook/preset-create-react-app",
   ],
   framework: "@storybook/react",
+  core: {
+    builder: "webpack5",
+  },
 };
