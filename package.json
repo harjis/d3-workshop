@@ -7,7 +7,6 @@
     "@testing-library/react": "^9.3.2",
     "@testing-library/user-event": "^7.1.2",
     "d3": "^5.15.0",
-    "flow-bin": "^0.117.0",
     "react": "^16.12.0",
     "react-dom": "^16.12.0",
     "react-resizable": "^1.10.1",
@@ -42,6 +41,10 @@
     "@storybook/addon-links": "^5.3.9",
     "@storybook/addons": "^5.3.9",
     "@storybook/preset-create-react-app": "^1.5.2",
-    "@storybook/react": "^5.3.9"
+    "@storybook/react": "^5.3.9",
+    "@typescript-eslint/eslint-plugin": "^2.34.0",
+    "@typescript-eslint/parser": "^2.34.0",
+    "prettier": "^2.5.1",
+    "typescript": "^3.9.10"
   }
 }
