@@ -1,21 +1,19 @@
-// @flow
-import * as React from 'react';
-import { axisBottom, select, scaleBand } from 'd3';
-
-type Props = {|
-  afterRender: (height: number) => void,
-  data: number[],
-  isResizing: boolean,
-  marginLeft: number,
-  top: number,
-  width: number
-|};
-
+import React from "react";
+import { axisBottom, select, scaleBand } from "d3";
+type Props = {
+  afterRender: (height: number) => void;
+  data: number[];
+  isResizing: boolean;
+  marginLeft: number;
+  top: number;
+  width: number;
+};
 export default class XAxis extends React.Component<Props> {
   static defaultProps = {
     isResizing: false,
     marginLeft: 0
   };
+
   componentDidMount() {
     this.axis = new XAxisD3(this.ref, this.props);
   }
@@ -24,26 +22,26 @@ export default class XAxis extends React.Component<Props> {
     this.axis && this.axis.update(nextProps);
   }
 
-  ref: ?Element;
-  axis: ?XAxisD3;
-
-  applyRef = (ref: ?Element) => (this.ref = ref);
+  ref: Element | null | undefined;
+  axis: XAxisD3 | null | undefined;
+  applyRef = (ref: Element | null | undefined) => this.ref = ref;
 
   render() {
     return <g ref={this.applyRef} />;
   }
+
 }
 
 class XAxisD3 {
-  constructor(element: ?Element, props: Props) {
+  constructor(element: Element | null | undefined, props: Props) {
     this.axisHeight = null;
     this.selection = select(element);
     const xScale = this.getScale(props);
     this.render(props, xScale);
   }
 
-  selection: Function;
-  axisHeight: ?number;
+  selection: (...args: Array<any>) => any;
+  axisHeight: number | null | undefined;
 
   update(nextProps: Props) {
     const xScale = this.getScale(nextProps);
@@ -51,10 +49,7 @@ class XAxisD3 {
   }
 
   getScale(props: Props) {
-    return scaleBand()
-      .range([0, props.width - props.marginLeft])
-      .domain(props.data)
-      .padding(0.1);
+    return scaleBand().range([0, props.width - props.marginLeft]).domain(props.data).padding(0.1);
   }
 
   _axisHeight(props: Props): number {
@@ -65,13 +60,11 @@ class XAxisD3 {
     return this.axisHeight;
   }
 
-  render(props: Props, xScale: Function) {
+  render(props: Props, xScale: (...args: Array<any>) => any) {
     const axis = axisBottom(xScale);
     this.selection.call(axis);
-    this.selection.attr(
-      'transform',
-      `translate(${props.marginLeft},${props.top - this._axisHeight(props)})`
-    );
+    this.selection.attr('transform', `translate(${props.marginLeft},${props.top - this._axisHeight(props)})`);
     props.afterRender(this._axisHeight(props));
   }
+
 }
