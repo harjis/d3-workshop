@@ -1,18 +1,27 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { storiesOf } from "@storybook/react";
-storiesOf('Development/d3-workshop/2b', module).addDecorator(getStory => {
-  const style = {
-    background: 'lightgrey',
-    height: window.innerHeight,
-    width: window.innerWidth,
-    overflow: 'scroll'
-  };
-  return <div style={style}>{getStory()}</div>;
-}).add('Band scale with points', () => {
-  return <BandScale type="points" width={200} height={100} points={[0, 5, 10]} />;
-}).add('Band scale with bars', () => {
-  return <BandScale type="bars" width={200} height={100} points={[0, 5, 10]} />;
-});
+import { select, scaleBand } from "d3";
+
+storiesOf("Development/d3-workshop/2b", module)
+  .addDecorator((getStory) => {
+    const style = {
+      background: "lightgrey",
+      height: window.innerHeight,
+      width: window.innerWidth,
+      overflow: "scroll",
+    };
+    return <div style={style}>{getStory()}</div>;
+  })
+  .add("Band scale with points", () => {
+    return (
+      <BandScale type="points" width={200} height={100} points={[0, 5, 10]} />
+    );
+  })
+  .add("Band scale with bars", () => {
+    return (
+      <BandScale type="bars" width={200} height={100} points={[0, 5, 10]} />
+    );
+  });
 type Props = {
   type: "points" | "bars";
   height: number;
@@ -20,16 +29,21 @@ type Props = {
   width: number;
 };
 
-class BandScale extends React.Component<Props> {
-  componentDidMount() {}
+function drawPoints(element: SVGSVGElement | null, props: Props): void {}
 
-  componentDidUpdate(nextProps: Props) {}
+const BAR_HEIGHT = 10;
 
-  applyRef = ref => this.ref = ref;
-  ref: Element | null | undefined;
+function drawBars(element: SVGSVGElement | null, props: Props): void {}
 
-  render() {
-    return <svg height={this.props.height} width={this.props.width} ref={this.applyRef} />;
-  }
+const BandScale = (props: Props): JSX.Element => {
+  const ref = useRef<SVGSVGElement>(null);
+  useEffect(() => {
+    if (props.type === "points") {
+      drawPoints(ref.current, props);
+    } else {
+      drawBars(ref.current, props);
+    }
+  }, [props]);
 
-}
+  return <svg height={props.height} width={props.width} ref={ref} />;
+};
