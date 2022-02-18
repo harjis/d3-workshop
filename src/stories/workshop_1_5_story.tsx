@@ -1,44 +1,78 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { storiesOf } from "@storybook/react";
-import { select, transition } from "d3";
-storiesOf('Development/d3-workshop/1', module).addDecorator(getStory => {
-  const style = {
-    background: 'lightgrey',
-    height: window.innerHeight,
-    width: window.innerWidth,
-    overflow: 'scroll'
-  };
-  return <div style={style}>{getStory()}</div>;
-}).add('Nested list of alphabet', () => {
-  return <Alphabet />;
-});
+import { select, transition, Transition, BaseType } from "d3";
 
-class Alphabet extends React.Component {
-  state = {
-    alphabet: [['a', 'b'], ['c', 'd']]
-  };
+storiesOf("Development/d3-workshop/Solutions/1", module)
+  .addDecorator((getStory) => {
+    const style = {
+      background: "lightgrey",
+      height: window.innerHeight,
+      width: window.innerWidth,
+      overflow: "scroll",
+    };
+    return <div style={style}>{getStory()}</div>;
+  })
+  .add("Nested list of alphabet", () => {
+    return <Alphabets />;
+  });
 
-  componentDidMount() {
-    draw(this.ref, this.state.alphabet);
+type AlphabetsType = {
+  id: number;
+  values: string[];
+};
+
+function draw(element: SVGSVGElement | null, alphabet: AlphabetsType[]): void {}
+
+const Alphabets = (): JSX.Element => {
+  const [state, setState] = useState<AlphabetsType[]>([
+    {
+      id: 1,
+      values: ["a", "b"],
+    },
+    {
+      id: 2,
+      values: ["c", "d"],
+    },
+  ]);
+  const ref = useRef<SVGSVGElement>(null);
+  useEffect(() => {
+    draw(ref.current, state);
+  }, [state]);
+
+  useEffect(() => {
     setTimeout(() => {
-      this.setState({
-        alphabet: [['b'], ['d']]
-      });
+      setState([
+        {
+          id: 1,
+          values: ["b"],
+        },
+        {
+          id: 2,
+          values: ["d"],
+        },
+      ]);
     }, 1000);
-  }
+    setTimeout(() => {
+      setState([
+        {
+          id: 1,
+          values: ["b"],
+        },
+        {
+          id: 3,
+          values: ["f"],
+        },
+        {
+          id: 2,
+          values: ["d"],
+        },
+      ]);
+    }, 2000);
+  }, []);
 
-  componentDidUpdate() {
-    draw(this.ref, this.state.alphabet);
-  }
-
-  applyRef = ref => this.ref = ref;
-
-  render() {
-    return <svg height="100" width="200" ref={this.applyRef}>
-        <g transform="translate(16, 16)" />
-      </svg>;
-  }
-
-}
-
-function draw(element, alphabet) {}
+  return (
+    <svg height="100" width="200" ref={ref}>
+      <g transform="translate(16, 16)" />
+    </svg>
+  );
+};

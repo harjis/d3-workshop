@@ -1,43 +1,41 @@
-/* eslint-disable */
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { storiesOf } from "@storybook/react";
-import { select, transition } from "d3";
-storiesOf('Development/d3-workshop/1', module).addDecorator(getStory => {
-  const style = {
-    background: 'lightgrey',
-    height: window.innerHeight,
-    width: window.innerWidth,
-    overflow: 'scroll'
-  };
-  return <div style={style}>{getStory()}</div>;
-}).add('Flat list of alphabet', () => {
-  return <Alphabet />;
-});
+import { BaseType, select, Transition, transition } from "d3";
 
-class Alphabet extends React.Component {
-  state = {
-    alphabet: ['a', 'b', 'c', 'd']
-  };
+storiesOf("Development/d3-workshop/Solutions/1", module)
+  .addDecorator((getStory) => {
+    const style = {
+      background: "lightgrey",
+      height: window.innerHeight,
+      width: window.innerWidth,
+      overflow: "scroll",
+    };
+    return <div style={style}>{getStory()}</div>;
+  })
+  .add("Flat list of alphabet", () => {
+    return <Alphabets />;
+  });
 
-  componentDidMount() {
-    draw(this.ref, this.state.alphabet);
+type AlphabetType = string;
+
+function draw(element: SVGSVGElement | null, alphabet: AlphabetType[]): void {}
+
+const Alphabets = (): JSX.Element => {
+  const [state, setState] = useState<AlphabetType[]>(["a", "b", "c", "d"]);
+  const ref = useRef<SVGSVGElement>(null);
+  useEffect(() => {
+    draw(ref.current, state);
+  }, [state]);
+
+  useEffect(() => {
     setTimeout(() => {
-      this.setState({
-        alphabet: ['b', 'd']
-      });
+      setState(["b", "d"]);
     }, 1000);
-  }
+  }, []);
 
-  componentDidUpdate() {
-    draw(this.ref, this.state.alphabet);
-  }
-
-  applyRef = ref => this.ref = ref;
-
-  render() {
-    return <svg ref={this.applyRef} />;
-  }
-
-}
-
-function draw(element, alphabet) {}
+  return (
+    <svg height="100" width="200" ref={ref}>
+      <g transform="translate(16, 16)" />
+    </svg>
+  );
+};
