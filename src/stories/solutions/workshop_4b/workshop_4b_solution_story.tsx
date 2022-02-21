@@ -90,12 +90,14 @@ const BarChart = (props: Props) => (
           afterRender={childrenProps.setMarginLeft}
           data={props.bars.map((bar) => bar.y)}
           height={childrenProps.getHeight()}
+          isResizing={false}
           left={0}
           marginBottom={childrenProps.getMarginBottom()}
         />
         <XAxis
           afterRender={childrenProps.setMarginBottom}
           data={props.bars.map((bar) => bar.x)}
+          isResizing={false}
           marginLeft={childrenProps.getMarginLeft()}
           top={childrenProps.getHeight()}
           width={childrenProps.getWidth()}

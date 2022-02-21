@@ -5,6 +5,7 @@ type Props = {
   afterRender: (width: number) => void;
   data: number[];
   height: number;
+  isResizing: boolean;
   left: number;
   marginBottom: number;
 };
@@ -31,9 +32,9 @@ class YAxisD3 {
       .domain([0, Math.max(...props.data)]);
   }
 
-  _axisWidth(): number {
+  _axisWidth(props: Props): number {
     const node = this.selection.node();
-    if (node && this.axisWidth === 0) {
+    if (node && (this.axisWidth === 0 || !props.isResizing)) {
       this.axisWidth = node.getBBox().width;
     }
 
@@ -45,9 +46,9 @@ class YAxisD3 {
     this.selection.call(axis);
     this.selection.attr(
       "transform",
-      `translate(${props.left + this._axisWidth()},${0})`
+      `translate(${props.left + this._axisWidth(props)},${0})`
     );
-    props.afterRender(this._axisWidth());
+    props.afterRender(this._axisWidth(props));
   }
 }
 

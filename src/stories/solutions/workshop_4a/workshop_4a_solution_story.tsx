@@ -130,12 +130,14 @@ const BarChart = (props: Props): JSX.Element => {
           afterRender={setYAxisWidth}
           data={yAxisData(props)}
           height={subtractMargins(props).height}
+          isResizing={false}
           left={0}
           marginBottom={state.xAxisHeight}
         />
         <XAxis
           afterRender={setXAxisHeight}
           data={xAxisData(props)}
+          isResizing={false}
           marginLeft={state.yAxisWidth}
           top={subtractMargins(props).height}
           width={subtractMargins(props).width}

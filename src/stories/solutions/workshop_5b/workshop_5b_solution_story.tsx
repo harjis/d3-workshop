@@ -1,13 +1,13 @@
-import React from "react";
+import * as React from "react";
 import { storiesOf } from "@storybook/react";
 
 import ChartContainer from "../workshop_4b/chart_container";
 import ResizableContainer from "../helpers/resizable_container_helper";
-import { StackGroupBars } from "./stack_group_bars";
+import { StackGroupBarsPerf } from "./stack_group_bars_perf";
 import { XAxis } from "../workshop_4a/x_axis";
 import { YAxis } from "../workshop_4a/y_axis";
 import type { ChildrenProps } from "../workshop_4b/chart_container";
-import type { StackGroupValue } from "./stack_group_bars";
+import type { StackGroupValue } from "./stack_group_bars_perf";
 
 const wrapperStyle = ({
   height,
@@ -22,7 +22,18 @@ const wrapperStyle = ({
   width,
 });
 
-storiesOf("Development/d3-workshop/Solutions/5a", module)
+/*
+ * CPU throttling: 4x slowdown
+ *
+ * With no perf improvements: 4-8 fps
+ * With all possible perf improvements: 13-22 fps
+ *
+ * CPU throttling: No throttling
+ *
+ * With no perf improvements: ~40 fps
+ * With all possible perf improvements: ~60 fps
+ * */
+storiesOf("Development/d3-workshop/Solutions/5b", module)
   .addDecorator((getStory) => {
     const style = {
       background: "lightgrey",
@@ -32,31 +43,33 @@ storiesOf("Development/d3-workshop/Solutions/5a", module)
     };
     return <div style={style}>{getStory()}</div>;
   })
-  .add("StackGroupBarChart with reusable components and a container", () => {
-    return (
-      <div>
-        <ResizableContainer>
-          {({ height, width, isResizing }) => (
-            <div
-              style={wrapperStyle({
-                height,
-                width,
-              })}
-            >
-              <BarChart
-                bars={getBars()}
-                height={height}
-                isResizing={isResizing}
-                margin={8}
-                width={width}
-              />
-            </div>
-          )}
-        </ResizableContainer>
-      </div>
-    );
-  });
-
+  .add(
+    "StackGroupBarPerfChart with reusable components and a container",
+    () => {
+      return (
+        <div>
+          <ResizableContainer>
+            {({ height, width, isResizing }) => (
+              <div
+                style={wrapperStyle({
+                  height,
+                  width,
+                })}
+              >
+                <BarChart
+                  bars={getBars()}
+                  height={height}
+                  isResizing={isResizing}
+                  margin={8}
+                  width={width}
+                />
+              </div>
+            )}
+          </ResizableContainer>
+        </div>
+      );
+    }
+  );
 type Props = {
   bars: StackGroupValue[];
   height: number;
@@ -77,21 +90,22 @@ const BarChart = (props: Props) => (
           afterRender={childrenProps.setMarginLeft}
           data={getAxisDataForValueType(props.bars)}
           height={childrenProps.getHeight()}
-          isResizing={false}
+          isResizing={props.isResizing}
           left={0}
           marginBottom={childrenProps.getMarginBottom()}
         />
         <XAxis
           afterRender={childrenProps.setMarginBottom}
           data={props.bars.map((bar) => bar.x)}
-          isResizing={false}
+          isResizing={props.isResizing}
           marginLeft={childrenProps.getMarginLeft()}
           top={childrenProps.getHeight()}
           width={childrenProps.getWidth()}
         />
-        <StackGroupBars
+        <StackGroupBarsPerf
           bars={props.bars}
           height={childrenProps.getHeight()}
+          isResizing={props.isResizing}
           marginBottom={childrenProps.getMarginBottom()}
           marginLeft={childrenProps.getMarginLeft()}
           width={childrenProps.getWidth()}

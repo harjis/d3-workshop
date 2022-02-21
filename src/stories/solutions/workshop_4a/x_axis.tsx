@@ -4,6 +4,7 @@ import { axisBottom, select, scaleBand, Selection, ScaleBand } from "d3";
 type Props = {
   afterRender: (height: number) => void;
   data: number[];
+  isResizing: boolean;
   marginLeft: number;
   top: number;
   width: number;
@@ -32,9 +33,9 @@ class XAxisD3 {
       .padding(0.1);
   }
 
-  _axisHeight(): number {
+  _axisHeight(props: Props): number {
     const node = this.selection.node();
-    if (node && this.axisHeight === 0) {
+    if (node && (this.axisHeight === 0 || !props.isResizing)) {
       this.axisHeight = node.getBBox().height;
     }
 
@@ -46,9 +47,9 @@ class XAxisD3 {
     this.selection.call(axis);
     this.selection.attr(
       "transform",
-      `translate(${props.marginLeft},${props.top - this._axisHeight()})`
+      `translate(${props.marginLeft},${props.top - this._axisHeight(props)})`
     );
-    props.afterRender(this._axisHeight());
+    props.afterRender(this._axisHeight(props));
   }
 }
 
