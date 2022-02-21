@@ -1,47 +1,24 @@
-import React from "react";
-import { axisLeft, select, scaleLinear } from "d3";
+import React, { useEffect, useRef } from "react";
+import { axisLeft, select, scaleLinear, Selection, ScaleLinear } from "d3";
+
 type Props = {
   afterRender: (width: number) => void;
   data: number[];
   height: number;
-  isResizing: boolean;
   left: number;
   marginBottom: number;
 };
-export default class YAxis extends React.Component<Props> {
-  static defaultProps = {
-    isResizing: false,
-    marginBottom: 0
-  };
-
-  componentDidMount() {
-    this.axis = new YAxisD3(this.ref, this.props);
-  }
-
-  componentWillReceiveProps(nextProps: Props) {
-    this.axis && this.axis.update(nextProps);
-  }
-
-  ref: Element | null | undefined;
-  axis: YAxisD3 | null | undefined;
-  applyRef = (ref: Element | null | undefined) => this.ref = ref;
-
-  render() {
-    return <g ref={this.applyRef} />;
-  }
-
-}
 
 class YAxisD3 {
-  constructor(element: Element | null | undefined, props: Props) {
-    this.axisWidth = null;
+  constructor(element: SVGGElement, props: Props) {
+    this.axisWidth = 0;
     this.selection = select(element);
     const yScale = this.getScale(props);
     this.render(props, yScale);
   }
 
-  selection: (...args: Array<any>) => any;
-  axisWidth: number | null | undefined;
+  selection: Selection<SVGGElement, unknown, null, undefined>;
+  axisWidth: number;
 
   update(nextProps: Props) {
     const yScale = this.getScale(nextProps);
@@ -49,22 +26,46 @@ class YAxisD3 {
   }
 
   getScale(props: Props) {
-    return scaleLinear().range([props.height - props.marginBottom, 0]).domain([0, Math.max(...props.data)]);
+    return scaleLinear()
+      .range([props.height - props.marginBottom, 0])
+      .domain([0, Math.max(...props.data)]);
   }
 
-  _axisWidth(props: Props): number {
-    if (this.axisWidth === null || this.axisWidth === undefined || !props.isResizing) {
-      this.axisWidth = this.selection.node().getBBox().width;
+  _axisWidth(): number {
+    const node = this.selection.node();
+    if (node && this.axisWidth === 0) {
+      this.axisWidth = node.getBBox().width;
     }
 
     return this.axisWidth;
   }
 
-  render(props: Props, yScale: (...args: Array<any>) => any) {
+  render(props: Props, yScale: ScaleLinear<number, number>) {
     const axis = axisLeft(yScale);
     this.selection.call(axis);
-    this.selection.attr('transform', `translate(${props.left + this._axisWidth(props)},${0})`);
-    props.afterRender(this._axisWidth(props));
+    this.selection.attr(
+      "transform",
+      `translate(${props.left + this._axisWidth()},${0})`
+    );
+    props.afterRender(this._axisWidth());
   }
-
 }
+
+export const YAxis = (props: Props): JSX.Element => {
+  const ref = useRef<SVGGElement>(null);
+  const yAxisRef = useRef<YAxisD3 | null>(null);
+
+  useEffect(() => {
+    if (ref.current instanceof SVGGElement) {
+      yAxisRef.current = new YAxisD3(ref.current, props);
+    }
+    // Mistake #1
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    yAxisRef.current?.update(props);
+  }, [props]);
+
+  return <g ref={ref} />;
+};

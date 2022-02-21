@@ -1,13 +1,11 @@
-import React, { useState } from "react";
+import * as React from "react";
 import { storiesOf } from "@storybook/react";
-import { YAxis } from "../solutions/workshop_4a/y_axis";
-import { XAxis } from "../solutions/workshop_4a/x_axis";
-import { Bars } from "../solutions/workshop_4a/bars";
-// import Bars from './bars';
-// import XAxis from './x_axis';
-// import YAxis from './y_axis';
+import { Bars } from "./bars";
+import { XAxis } from "./x_axis";
+import { YAxis } from "./y_axis";
+import { useState } from "react";
 
-storiesOf("Development/d3-workshop/4a", module)
+storiesOf("Development/d3-workshop/Solutions/4a", module)
   .addDecorator((getStory) => {
     const style = {
       background: "lightgrey",
@@ -68,6 +66,7 @@ storiesOf("Development/d3-workshop/4a", module)
       />
     );
   });
+
 type Bar = {
   x: number;
   y: number;
@@ -127,9 +126,27 @@ const BarChart = (props: Props): JSX.Element => {
       }}
     >
       <g transform={`translate(${props.margin},${props.margin})`}>
-        {/*<YAxis />*/}
-        {/*<XAxis />*/}
-        {/*<Bars />*/}
+        <YAxis
+          afterRender={setYAxisWidth}
+          data={yAxisData(props)}
+          height={subtractMargins(props).height}
+          left={0}
+          marginBottom={state.xAxisHeight}
+        />
+        <XAxis
+          afterRender={setXAxisHeight}
+          data={xAxisData(props)}
+          marginLeft={state.yAxisWidth}
+          top={subtractMargins(props).height}
+          width={subtractMargins(props).width}
+        />
+        <Bars
+          bars={props.bars}
+          height={subtractMargins(props).height}
+          marginBottom={state.xAxisHeight}
+          marginLeft={state.yAxisWidth}
+          width={subtractMargins(props).width}
+        />
       </g>
     </svg>
   );

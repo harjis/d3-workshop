@@ -1,5 +1,13 @@
-import React from "react";
-import { select, scaleBand, scaleLinear } from "d3";
+import React, { useEffect, useRef } from "react";
+import {
+  select,
+  scaleBand,
+  scaleLinear,
+  Selection,
+  ScaleLinear,
+  ScaleBand,
+} from "d3";
+
 type Bar = {
   x: number;
   y: number;
@@ -11,60 +19,72 @@ type Props = {
   marginLeft: number;
   width: number;
 };
-export default class Bars extends React.Component<Props> {
-  static defaultProps = {
-    height: 0,
-    marginBottom: 0,
-    marginLeft: 0,
-    width: 0
-  };
-
-  componentDidMount() {
-    this.bar = new BarsD3(this.ref, this.props);
-  }
-
-  componentWillReceiveProps(nextProps: Props) {
-    this.bar && this.bar.update(nextProps);
-  }
-
-  ref: Element | null | undefined;
-  bar: BarsD3 | null | undefined;
-  applyRef = (ref: Element | null | undefined) => this.ref = ref;
-
-  render() {
-    return <g ref={this.applyRef} />;
-  }
-
-}
 
 class BarsD3 {
-  constructor(element: Element | null | undefined, props: Props) {
-    this.selection = select(element).append('g');
+  constructor(element: SVGGElement, props: Props) {
+    this.selection = select(element).append("g");
     const yScale = this.getYScale(props);
     const xScale = this.getXScale(props);
     this.render(props, xScale, yScale);
   }
 
-  selection: (...args: Array<any>) => any;
+  selection: Selection<SVGGElement, unknown, null, undefined>;
 
   update(nextProps: Props) {
-    this.selection.selectAll('rect').remove();
+    this.selection.selectAll("rect").remove();
     const yScale = this.getYScale(nextProps);
     const xScale = this.getXScale(nextProps);
     this.render(nextProps, xScale, yScale);
   }
 
-  getYScale(props: Props): (...args: Array<any>) => any {
-    return scaleLinear().range([props.height - props.marginBottom, 0]).domain([0, Math.max(...props.bars.map(bar => bar.y))]);
+  getYScale(props: Props): ScaleLinear<number, number> {
+    return scaleLinear()
+      .range([props.height - props.marginBottom, 0])
+      .domain([0, Math.max(...props.bars.map((bar) => bar.y))]);
   }
 
-  getXScale(props: Props): (...args: Array<any>) => any {
-    return scaleBand().range([0, props.width - props.marginLeft]).domain(props.bars.map(bar => bar.x)).padding(0.1);
+  getXScale(props: Props): ScaleBand<number> {
+    return scaleBand<number>()
+      .range([0, props.width - props.marginLeft])
+      .domain(props.bars.map((bar) => bar.x))
+      .padding(0.1);
   }
 
-  render(props: Props, xScale: (...args: Array<any>) => any, yScale: (...args: Array<any>) => any) {
-    const bars = this.selection.attr('transform', `translate(${props.marginLeft}, ${0})`).selectAll('rect').data(props.bars);
-    bars.enter().append('rect').attr('fill', 'black').attr('height', d => props.height - props.marginBottom - yScale(d.y)).attr('width', xScale.bandwidth()).attr('y', d => yScale(d.y)).attr('x', d => xScale(d.x));
+  render(
+    props: Props,
+    xScale: ScaleBand<number>,
+    yScale: ScaleLinear<number, number>
+  ) {
+    const bars = this.selection
+      .attr("transform", `translate(${props.marginLeft}, ${0})`)
+      .selectAll("rect")
+      .data(props.bars);
+    bars
+      .enter()
+      .append("rect")
+      .attr("fill", "black")
+      .attr("height", (d) => props.height - props.marginBottom - yScale(d.y))
+      .attr("width", xScale.bandwidth())
+      .attr("y", (d) => yScale(d.y))
+      .attr("x", (d) => xScale(d.x) as number);
   }
-
 }
+
+export const Bars = (props: Props): JSX.Element => {
+  const ref = useRef<SVGGElement>(null);
+  const barRef = useRef<BarsD3 | null>(null);
+
+  useEffect(() => {
+    if (ref.current instanceof SVGGElement) {
+      barRef.current = new BarsD3(ref.current, props);
+    }
+    // Mistake #1
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    barRef.current?.update(props);
+  }, [props]);
+
+  return <g ref={ref} />;
+};
