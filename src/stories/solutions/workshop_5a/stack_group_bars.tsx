@@ -1,8 +1,16 @@
-import React from "react";
-import { select, scaleBand, scaleLinear } from "d3";
+import React, { useEffect, useRef } from "react";
+import {
+  select,
+  scaleBand,
+  scaleLinear,
+  Selection,
+  ScaleBand,
+  ScaleLinear,
+} from "d3";
 import groupBy from "./group_by";
 import { getColorScale } from "../helpers/scale";
-type ScaleByValueType = Record<string, (...args: Array<any>) => any>;
+
+type ScaleByValueType = Record<string, ScaleLinear<number, number>>;
 export type StackGroupValue = {
   groupId: string;
   valueId: string;
@@ -26,35 +34,13 @@ type InternalStackGroupValues = {
   xIdValues: InternalStackGroupValue[];
   yEnds: number[];
 };
-type InternalStackGroupValuesByValueType = Record<string, InternalStackGroupValues[]>;
-export default class StackGroupBars extends React.Component<Props> {
-  static defaultProps = {
-    height: 0,
-    marginBottom: 0,
-    marginLeft: 0,
-    width: 0
-  };
-
-  componentDidMount() {
-    this.bar = new StackGroupBarsD3(this.ref, this.props);
-  }
-
-  componentWillReceiveProps(nextProps: Props) {
-    this.bar && this.bar.update(nextProps);
-  }
-
-  ref: Element | null | undefined;
-  bar: StackGroupBarsD3 | null | undefined;
-  applyRef = (ref: Element | null | undefined) => this.ref = ref;
-
-  render() {
-    return <g ref={this.applyRef} />;
-  }
-
-}
+type InternalStackGroupValuesByValueType = Record<
+  string,
+  InternalStackGroupValues[]
+>;
 
 class StackGroupBarsD3 {
-  constructor(element: Element | null | undefined, props: Props) {
+  constructor(element: SVGGElement, props: Props) {
     this.selection = select(element);
     const formattedValuesForYAxises = this.formatDataForYAxises(props.bars);
     const formattedValues = this.formatDataForRendering(props.bars);
@@ -64,10 +50,10 @@ class StackGroupBarsD3 {
     this.render(props, xScale, yScales, groupScale, formattedValues);
   }
 
-  selection: (...args: Array<any>) => any;
+  selection: Selection<SVGGElement, unknown, null, undefined>;
 
   update(nextProps: Props) {
-    this.selection.selectAll('g').remove();
+    this.selection.selectAll("g").remove();
     const formattedValuesForYAxises = this.formatDataForYAxises(nextProps.bars);
     const formattedValues = this.formatDataForRendering(nextProps.bars);
     const yScales = this.getYScales(nextProps, formattedValuesForYAxises);
@@ -76,31 +62,38 @@ class StackGroupBarsD3 {
     this.render(nextProps, xScale, yScales, groupScale, formattedValues);
   }
 
-  formatDataForYAxises(values: StackGroupValue[]): InternalStackGroupValuesByValueType {
-    const valueTypesValues = groupBy(values, 'valueType');
-    return Array.from(valueTypesValues).reduce((acc, [valueType, valueTypeValues]) => {
-      const xIdValues = this.formatDataForRendering(valueTypeValues);
-      return { ...acc,
-        [valueType]: xIdValues
-      };
-    }, {});
+  formatDataForYAxises(
+    values: StackGroupValue[]
+  ): InternalStackGroupValuesByValueType {
+    const valueTypesValues = groupBy(values, "valueType");
+    return Array.from(valueTypesValues).reduce(
+      (acc, [valueType, valueTypeValues]) => {
+        const xIdValues = this.formatDataForRendering(valueTypeValues);
+        return { ...acc, [valueType]: xIdValues };
+      },
+      {}
+    );
   }
 
-  formatDataForRendering(values: StackGroupValue[]): InternalStackGroupValues[] {
-    const ids = [...new Set(values.map(value => value.x))];
-    return ids.map(x => {
-      const xIdValues = this.formatXIdValues(values.filter(value => value.x === x));
+  formatDataForRendering(
+    values: StackGroupValue[]
+  ): InternalStackGroupValues[] {
+    const ids = [...new Set(values.map((value) => value.x))];
+    return ids.map((x) => {
+      const xIdValues = this.formatXIdValues(
+        values.filter((value) => value.x === x)
+      );
       return {
         xIdValues,
-        yEnds: xIdValues.map(xIdValue => xIdValue.yEnd),
-        x
+        yEnds: xIdValues.map((xIdValue) => xIdValue.yEnd),
+        x,
       };
     });
   }
 
   formatXIdValues(valuesForXId: StackGroupValue[]): InternalStackGroupValue[] {
-    const yStartPositiveByGroupId = {};
-    const yStartNegativeByGroupId = {};
+    const yStartPositiveByGroupId: Record<string, number> = {};
+    const yStartNegativeByGroupId: Record<string, number> = {};
     return valuesForXId.map((value: StackGroupValue) => {
       if (!yStartPositiveByGroupId[value.groupId]) {
         yStartPositiveByGroupId[value.groupId] = 0;
@@ -120,35 +113,97 @@ class StackGroupBarsD3 {
         yStartNegativeByGroupId[value.groupId] += value.y;
       }
 
-      return { ...value,
-        yEnd: yStart + value.y,
-        yStart: yStart
-      };
+      return { ...value, yEnd: yStart + value.y, yStart: yStart };
     });
   }
 
-  getYScales(props: Props, values: InternalStackGroupValuesByValueType): ScaleByValueType {
+  getYScales(
+    props: Props,
+    values: InternalStackGroupValuesByValueType
+  ): ScaleByValueType {
     const uniqueValueTypes = Object.keys(values);
-    return uniqueValueTypes.reduce((acc, valueType) => {
-      const valuesToBeUsed = values[valueType].reduce((acc, value) => [...acc, ...value.yEnds], []);
-      const scale = scaleLinear().range([props.height - props.marginBottom, 0]).domain([0, Math.max(...valuesToBeUsed)]);
-      return { ...acc,
-        [valueType]: scale
-      };
+    return uniqueValueTypes.reduce<ScaleByValueType>((acc, valueType) => {
+      const valuesToBeUsed = values[valueType].reduce<number[]>(
+        (acc, value) => [...acc, ...value.yEnds],
+        []
+      );
+      const scale = scaleLinear()
+        .range([props.height - props.marginBottom, 0])
+        .domain([0, Math.max(...valuesToBeUsed)]);
+      return { ...acc, [valueType]: scale };
     }, {});
   }
 
-  getXScale(props: Props): (...args: Array<any>) => any {
-    return scaleBand().range([0, props.width - props.marginLeft]).domain(props.bars.map(bar => bar.x)).padding(0.1);
+  getXScale(props: Props): ScaleBand<number> {
+    return scaleBand<number>()
+      .range([0, props.width - props.marginLeft])
+      .domain(props.bars.map((bar) => bar.x))
+      .padding(0.1);
   }
 
-  getGroupScale(props: Props, xScale: (...args: Array<any>) => any) {
-    return scaleBand().domain(props.bars.map(value => value.groupId)).range([0, xScale.bandwidth()]).padding(0.1);
+  getGroupScale(props: Props, xScale: ScaleBand<number>) {
+    return scaleBand()
+      .domain(props.bars.map((value) => value.groupId))
+      .range([0, xScale.bandwidth()])
+      .padding(0.1);
   }
 
-  render(props: Props, xScale: (...args: Array<any>) => any, yScales: ScaleByValueType, groupScale: (...args: Array<any>) => any, formattedValues: InternalStackGroupValues[]) {
-    const uniqueValues = [...new Set(props.bars.map(value => value.valueId))];
-    this.selection.attr('transform', `translate(${props.marginLeft}, 0)`).selectAll('g').data(formattedValues).enter().append('g').attr('transform', (d: InternalStackGroupValues) => `translate(${xScale(d.x)}, 0)`).selectAll('rect').data(d => d.xIdValues).enter().append('rect').attr('fill', (d: InternalStackGroupValue) => getColorScale(uniqueValues)(d.valueId)).attr('x', (d: InternalStackGroupValue) => groupScale(d.groupId)).attr('y', (d: InternalStackGroupValue) => d.yStart < d.yEnd ? yScales[d.valueType](d.yEnd) : yScales[d.valueType](d.yStart)).attr('height', (d: InternalStackGroupValue) => Math.abs(yScales[d.valueType](d.yStart) - yScales[d.valueType](d.yEnd))).attr('width', groupScale.bandwidth());
+  render(
+    props: Props,
+    xScale: ScaleBand<number>,
+    yScales: ScaleByValueType,
+    groupScale: ScaleBand<string>,
+    formattedValues: InternalStackGroupValues[]
+  ) {
+    const uniqueValues = [...new Set(props.bars.map((value) => value.valueId))];
+    this.selection
+      .attr("transform", `translate(${props.marginLeft}, 0)`)
+      .selectAll("g")
+      .data(formattedValues)
+      .enter()
+      .append("g")
+      .attr(
+        "transform",
+        (d: InternalStackGroupValues) => `translate(${xScale(d.x)}, 0)`
+      )
+      .selectAll("rect")
+      .data((d) => d.xIdValues)
+      .enter()
+      .append("rect")
+      .attr("fill", (d: InternalStackGroupValue) =>
+        getColorScale(uniqueValues)(d.valueId)
+      )
+      .attr(
+        "x",
+        (d: InternalStackGroupValue) => groupScale(d.groupId) as number
+      )
+      .attr("y", (d: InternalStackGroupValue) =>
+        d.yStart < d.yEnd
+          ? yScales[d.valueType](d.yEnd)
+          : yScales[d.valueType](d.yStart)
+      )
+      .attr("height", (d: InternalStackGroupValue) =>
+        Math.abs(yScales[d.valueType](d.yStart) - yScales[d.valueType](d.yEnd))
+      )
+      .attr("width", groupScale.bandwidth());
   }
-
 }
+
+export const StackGroupBars = (props: Props): JSX.Element => {
+  const ref = useRef<SVGGElement>(null);
+  const barRef = useRef<StackGroupBarsD3 | null>(null);
+
+  useEffect(() => {
+    if (ref.current instanceof SVGGElement) {
+      barRef.current = new StackGroupBarsD3(ref.current, props);
+    }
+    // Mistake #1
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    barRef.current?.update(props);
+  }, [props]);
+
+  return <g ref={ref} />;
+};
