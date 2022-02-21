@@ -1,5 +1,6 @@
 import React from "react";
 import { Resizable } from "react-resizable";
+import "react-resizable/css/styles.css";
 
 type ResizeCallbackData = {
   node: HTMLElement;

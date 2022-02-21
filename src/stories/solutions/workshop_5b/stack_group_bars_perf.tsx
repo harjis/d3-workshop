@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import {
   select,
   scaleBand,
@@ -243,7 +243,7 @@ function computeResizeTransforms(
 }
 
 export const StackGroupBarsPerf = (_props: PublicProps): JSX.Element => {
-  const props = { ...defaultProps, ..._props };
+  const props = useMemo(() => ({ ...defaultProps, ..._props }), [_props]);
   const ref = useRef<SVGGElement>(null);
   const barRef = useRef<StackGroupBarsD3 | null>(null);
   const preResizeRef = useRef({
@@ -252,7 +252,7 @@ export const StackGroupBarsPerf = (_props: PublicProps): JSX.Element => {
   });
 
   const updatePreResizeDimensions = useCallback((nextProps: Props) => {
-    return {
+    preResizeRef.current = {
       preResizeHeight: totalHeight(nextProps),
       preResizeWidth: totalWidth(nextProps),
     };
