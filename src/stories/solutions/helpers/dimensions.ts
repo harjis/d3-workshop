@@ -32,6 +32,7 @@ function horizontalMargins(props: {
   return props.marginLeft + props.marginRight;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function verticalMargins(props: any): number {
   return props.marginTop + props.marginBottom;
 }

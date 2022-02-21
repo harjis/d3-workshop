@@ -17,6 +17,7 @@ storiesOf("Development/d3-workshop/3", module)
 type Props = {
   height: number;
   margin: number;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   bars: any;
   width: number;
 };
