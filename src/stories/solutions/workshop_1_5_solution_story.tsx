@@ -38,13 +38,15 @@ function draw(element: SVGSVGElement | null, alphabet: AlphabetsType[]): void {
     .select("g")
     .selectAll<SVGGElement, AlphabetsType>("g")
     .data(alphabet, (d) => d.id);
-  groups.transition(t).attr("transform", (d, i) => `translate(${i * 32},0)`);
+
   groups.exit().transition(t).remove();
+  groups.transition(t).attr("transform", (d, i) => `translate(${i * 32},0)`);
   const groupsEnter = groups
     .enter()
     .append("g")
     .transition(t)
     .attr("transform", (d, i) => `translate(${i * 32},0)`);
+
   const texts = groups
     .merge(groupsEnter)
     .selectAll<SVGTextElement, string>("text")
