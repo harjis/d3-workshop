@@ -47,11 +47,10 @@ function draw(element: SVGSVGElement | null, alphabet: AlphabetsType[]): void {
     .attr("transform", (d, i) => `translate(${i * 32},0)`);
   const texts = groups
     .merge(groupsEnter)
-    .selectAll<SVGTextElement, AlphabetsType>("text")
+    .selectAll<SVGTextElement, string>("text")
     .data(
       (d) => d.values,
-      // TODO why do I need this typecheck?
-      (d) => (typeof d === "string" ? d : d.id)
+      (d) => d
     );
   texts
     .exit()
