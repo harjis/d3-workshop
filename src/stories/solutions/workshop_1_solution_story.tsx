@@ -34,27 +34,13 @@ function draw(element: SVGSVGElement | null, alphabet: AlphabetType[]): void {
   >;
 
   // JOIN new data with old elements.
-  const text = select<SVGSVGElement, AlphabetType[]>(element)
+  const updateSelection = select<SVGSVGElement, AlphabetType[]>(element)
     .select("g")
     .selectAll<SVGTextElement, AlphabetType>("text")
     .data(alphabet, (d) => d);
-  // EXIT old elements not present in new data.
-  text
-    .exit()
-    .attr("fill", "brown")
-    .transition(t)
-    .attr("y", 60)
-    .style("fill-opacity", 1e-6)
-    .remove();
-  // UPDATE old elements present in new data.
-  text
-    .attr("fill", "black")
-    .attr("y", 0)
-    .style("fill-opacity", 1)
-    .transition(t)
-    .attr("x", (d, i) => i * 32);
+
   // ENTER new elements present in new data.
-  text
+  updateSelection
     .enter()
     .append("text")
     .attr("fill", "green")
@@ -66,6 +52,23 @@ function draw(element: SVGSVGElement | null, alphabet: AlphabetType[]): void {
     .transition(t)
     .attr("y", 0)
     .style("fill-opacity", 1);
+
+  // EXIT old elements not present in new data.
+  updateSelection
+    .exit()
+    .attr("fill", "brown")
+    .transition(t)
+    .attr("y", 60)
+    .style("fill-opacity", 1e-6)
+    .remove();
+
+  // UPDATE old elements present in new data.
+  updateSelection
+    .attr("fill", "black")
+    .attr("y", 0)
+    .style("fill-opacity", 1)
+    .transition(t)
+    .attr("x", (d, i) => i * 32);
 }
 
 const Alphabets = (): JSX.Element => {
