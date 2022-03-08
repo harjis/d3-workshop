@@ -2,10 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { storiesOf } from "@storybook/react";
 import { select, transition, Transition, BaseType } from "d3";
 
-storiesOf(
-  "Development/d3-workshop/Solutions/1 - General Update Pattern",
-  module
-)
+storiesOf("Development/d3-workshop/Solutions/1 - Join", module)
   .addDecorator((getStory) => {
     const style = {
       background: "lightgrey",
@@ -40,48 +37,60 @@ function draw(element: SVGSVGElement | null, alphabet: AlphabetsType[]): void {
   const groups = select<SVGSVGElement, AlphabetsType[]>(element)
     .select("g")
     .selectAll<SVGGElement, AlphabetsType>("g")
-    .data(alphabet, (d) => d.id);
+    .data(alphabet, (d) => d.id)
+    .join(
+      (enter) =>
+        enter
+          .append("g")
+          .call((enter) =>
+            enter
+              .transition(t)
+              .attr("transform", (d, i) => `translate(${i * 32},0)`)
+          ),
+      (update) =>
+        update.call((update) =>
+          update
+            .transition(t)
+            .attr("transform", (d, i) => `translate(${i * 32},0)`)
+        ),
+      (exit) => exit.call((exit) => exit.transition(t).remove())
+    );
 
-  groups.exit().transition(t).remove();
-  groups.transition(t).attr("transform", (d, i) => `translate(${i * 32},0)`);
-  const groupsEnter = groups
-    .enter()
-    .append("g")
-    .transition(t)
-    .attr("transform", (d, i) => `translate(${i * 32},0)`);
-
-  const texts = groups
-    .merge(groupsEnter)
+  groups
     .selectAll<SVGTextElement, string>("text")
     .data(
       (d) => d.values,
       (d) => d
+    )
+    .join(
+      (enter) =>
+        enter
+          .append("text")
+          .attr("fill", "green")
+          .attr("dy", ".35em")
+          .attr("y", -60)
+          .attr("x", (d, i) => i * 10)
+          .style("fill-opacity", 1e-6)
+          .text((d) => d)
+          .call((enter) =>
+            enter.transition(t).attr("y", 0).style("fill-opacity", 1)
+          ),
+      (update) =>
+        update
+          .attr("fill", "black")
+          .attr("y", 0)
+          .style("fill-opacity", 1)
+          .call((update) => update.transition(t).attr("x", (d, i) => i * 10)),
+      (exit) =>
+        exit.call((exit) =>
+          exit
+            .transition(t)
+            .attr("fill", "brown")
+            .attr("y", 60)
+            .style("fill-opacity", 1e-6)
+            .remove()
+        )
     );
-  texts
-    .exit()
-    .transition(t)
-    .attr("fill", "brown")
-    .attr("y", 60)
-    .style("fill-opacity", 1e-6)
-    .remove();
-  texts
-    .attr("fill", "black")
-    .attr("y", 0)
-    .style("fill-opacity", 1)
-    .transition(t)
-    .attr("x", (d, i) => i * 10);
-  texts
-    .enter()
-    .append("text")
-    .attr("fill", "green")
-    .attr("dy", ".35em")
-    .attr("y", -60)
-    .attr("x", (d, i) => i * 10)
-    .style("fill-opacity", 1e-6)
-    .text((d) => d)
-    .transition(t)
-    .attr("y", 0)
-    .style("fill-opacity", 1);
 }
 
 const Alphabets = (): JSX.Element => {

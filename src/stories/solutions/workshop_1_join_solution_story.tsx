@@ -2,10 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { storiesOf } from "@storybook/react";
 import { BaseType, select, Transition, transition } from "d3";
 
-storiesOf(
-  "Development/d3-workshop/Solutions/1 - General Update Pattern",
-  module
-)
+storiesOf("Development/d3-workshop/Solutions/1 - Join", module)
   .addDecorator((getStory) => {
     const style = {
       background: "lightgrey",
@@ -36,41 +33,40 @@ function draw(element: SVGSVGElement | null, alphabet: AlphabetType[]): void {
   >;
 
   // JOIN new data with old elements.
-  const updateSelection = select<SVGSVGElement, AlphabetType[]>(element)
+  select<SVGSVGElement, AlphabetType[]>(element)
     .select("g")
     .selectAll<SVGTextElement, AlphabetType>("text")
-    .data(alphabet, (d) => d);
-
-  // ENTER new elements present in new data.
-  updateSelection
-    .enter()
-    .append("text")
-    .attr("fill", "green")
-    .attr("dy", ".35em")
-    .attr("y", -60)
-    .attr("x", (d, i) => i * 32)
-    .style("fill-opacity", 1e-6)
-    .text((d) => d)
-    .transition(t)
-    .attr("y", 0)
-    .style("fill-opacity", 1);
-
-  // EXIT old elements not present in new data.
-  updateSelection
-    .exit()
-    .attr("fill", "brown")
-    .transition(t)
-    .attr("y", 60)
-    .style("fill-opacity", 1e-6)
-    .remove();
-
-  // UPDATE old elements present in new data.
-  updateSelection
-    .attr("fill", "black")
-    .attr("y", 0)
-    .style("fill-opacity", 1)
-    .transition(t)
-    .attr("x", (d, i) => i * 32);
+    .data(alphabet, (d) => d)
+    .join(
+      (enter) =>
+        enter
+          .append("text")
+          .attr("fill", "green")
+          .attr("dy", ".35em")
+          .attr("y", -60)
+          .attr("x", (d, i) => i * 32)
+          .style("fill-opacity", 1e-6)
+          .text((d) => d)
+          .call((enter) =>
+            enter.transition(t).attr("y", 0).style("fill-opacity", 1)
+          ),
+      (update) =>
+        update
+          .attr("fill", "black")
+          .attr("y", 0)
+          .style("fill-opacity", 1)
+          .call((update) => update.transition(t).attr("x", (d, i) => i * 32)),
+      (exit) =>
+        exit
+          .attr("fill", "brown")
+          .call((exit) =>
+            exit
+              .transition(t)
+              .attr("y", 60)
+              .style("fill-opacity", 1e-6)
+              .remove()
+          )
+    );
 }
 
 const Alphabets = (): JSX.Element => {
