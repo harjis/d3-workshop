@@ -1,9 +1,10 @@
-import * as React from "react";
+import React, { useState } from "react";
 import { storiesOf } from "@storybook/react";
+
 import { FutureBars } from "./future_bars";
 import { XAxis } from "../workshop_4a/x_axis";
 import { YAxis } from "../workshop_4a/y_axis";
-import { useState } from "react";
+import ChartContainer, { ChildrenProps } from "../workshop_4b/chart_container";
 
 storiesOf("Development/d3-workshop/Solutions/6 - FUTURE", module)
   .addDecorator((getStory) => {
@@ -30,45 +31,20 @@ type Props = {
 };
 type State = {
   ascendingData: boolean;
-  yAxisWidth: number;
-  xAxisHeight: number;
 };
 
 const BarChart = (props: Props): JSX.Element => {
-  function subtractMargins(props: Props) {
-    return {
-      ...props,
-      height: props.height - props.margin * 2,
-      width: props.width - props.margin * 2,
-    };
-  }
-  function xAxisData(props: Props) {
+  function xAxisData() {
     return getData(state.ascendingData).map((bar) => bar.x);
   }
 
-  function yAxisData(props: Props) {
+  function yAxisData() {
     return getData(state.ascendingData).map((bar) => bar.y);
   }
 
   const [state, setState] = useState<State>({
     ascendingData: true,
-    yAxisWidth: 0,
-    xAxisHeight: 0,
   });
-  const setYAxisWidth = (yAxisWidth: number) => {
-    if (state.yAxisWidth !== yAxisWidth)
-      setState({
-        ...state,
-        yAxisWidth,
-      });
-  };
-  const setXAxisHeight = (xAxisHeight: number) => {
-    if (state.xAxisHeight !== xAxisHeight)
-      setState({
-        ...state,
-        xAxisHeight,
-      });
-  };
 
   const changeData = () => {
     setState({ ...state, ascendingData: !state.ascendingData });
@@ -77,39 +53,39 @@ const BarChart = (props: Props): JSX.Element => {
   return (
     <div>
       <button onClick={() => changeData()}>Change data</button>
-      <svg
+      <ChartContainer
         height={props.height}
+        margin={props.margin}
         width={props.width}
-        style={{
-          background: "white",
-        }}
       >
-        <g transform={`translate(${props.margin},${props.margin})`}>
-          <YAxis
-            afterRender={setYAxisWidth}
-            data={yAxisData(props)}
-            height={subtractMargins(props).height}
-            isResizing={false}
-            left={0}
-            marginBottom={state.xAxisHeight}
-          />
-          <XAxis
-            afterRender={setXAxisHeight}
-            data={xAxisData(props)}
-            isResizing={false}
-            marginLeft={state.yAxisWidth}
-            top={subtractMargins(props).height}
-            width={subtractMargins(props).width}
-          />
-          <FutureBars
-            bars={getData(state.ascendingData)}
-            height={subtractMargins(props).height}
-            marginBottom={state.xAxisHeight}
-            marginLeft={state.yAxisWidth}
-            width={subtractMargins(props).width}
-          />
-        </g>
-      </svg>
+        {(childrenProps: ChildrenProps) => (
+          <React.Fragment>
+            <YAxis
+              afterRender={childrenProps.setMarginLeft}
+              data={yAxisData()}
+              height={childrenProps.getHeight()}
+              isResizing={false}
+              left={0}
+              marginBottom={childrenProps.getMarginBottom()}
+            />
+            <XAxis
+              afterRender={childrenProps.setMarginBottom}
+              data={xAxisData()}
+              isResizing={false}
+              marginLeft={childrenProps.getMarginLeft()}
+              top={childrenProps.getHeight()}
+              width={childrenProps.getWidth()}
+            />
+            <FutureBars
+              bars={getData(state.ascendingData)}
+              height={childrenProps.getHeight()}
+              marginBottom={childrenProps.getMarginBottom()}
+              marginLeft={childrenProps.getMarginLeft()}
+              width={childrenProps.getWidth()}
+            />
+          </React.Fragment>
+        )}
+      </ChartContainer>
     </div>
   );
 };
