@@ -15,9 +15,6 @@ class BarsD3 {
   store: BarsStore;
 
   animate(props: Props) {
-    const yScale = this.store.getYScale(props);
-    const xScale = this.store.getXScale(props);
-
     this.selection
       .attr("transform", `translate(${props.marginLeft}, ${0})`)
       .selectAll("rect")
@@ -27,44 +24,35 @@ class BarsD3 {
           enter
             .append("rect")
             .attr("fill", "black")
-            .attr(
-              "height",
-              (d) => props.height - props.marginBottom - yScale(d.y)
-            )
-            .attr("width", xScale.bandwidth())
-            .attr("y", (d) => yScale(d.y))
-            .attr("x", (d) => xScale(d.x) as number),
+            .attr("height", (d) => this.store.barHeight(props, d))
+            .attr("width", this.store.barWidth(props))
+            .attr("y", (d) => this.store.barYPosition(props, d))
+            .attr("x", (d) => this.store.barXPosition(props, d)),
         (update) =>
           update.attr("fill", "black").call((update) =>
             update
               .transition()
               .duration(750)
-              .attr(
-                "height",
-                (d) => props.height - props.marginBottom - yScale(d.y)
-              )
-              .attr("width", xScale.bandwidth())
-              .attr("y", (d) => yScale(d.y))
-              .attr("x", (d) => xScale(d.x) as number)
+              .attr("height", (d) => this.store.barHeight(props, d))
+              .attr("width", this.store.barWidth(props))
+              .attr("y", (d) => this.store.barYPosition(props, d))
+              .attr("x", (d) => this.store.barXPosition(props, d))
           ),
         (exit) => exit
       );
   }
 
   render(props: Props) {
-    const yScale = this.store.getYScale(props);
-    const xScale = this.store.getXScale(props);
-
     this.selection
       .attr("transform", `translate(${props.marginLeft}, ${0})`)
       .selectAll("rect")
       .data(props.bars)
       .join("rect")
       .attr("fill", "black")
-      .attr("height", (d) => props.height - props.marginBottom - yScale(d.y))
-      .attr("width", xScale.bandwidth())
-      .attr("y", (d) => yScale(d.y))
-      .attr("x", (d) => xScale(d.x) as number);
+      .attr("height", (d) => this.store.barHeight(props, d))
+      .attr("width", this.store.barWidth(props))
+      .attr("y", (d) => this.store.barYPosition(props, d))
+      .attr("x", (d) => this.store.barXPosition(props, d));
   }
 }
 
